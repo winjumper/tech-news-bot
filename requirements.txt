@@ -1,0 +1,5 @@
+feedparser
+requests
+beautifulsoup4
+pillow
+python-dotenv
