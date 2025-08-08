@@ -79,13 +79,14 @@ def within_days(published: str, days: int = 3) -> bool:
     except Exception:
         return True
 
-
 def fetch_items() -> list[dict]:
-    """Fetch and parse entries from all configured RSS sources."""
     items: list[dict] = []
     for feed_url in SOURCES:
+        kept = 0
         try:
+            print(f"[feed] fetching: {feed_url}")
             feed = feedparser.parse(feed_url)
+            total = len(getattr(feed, "entries", []))
             for entry in feed.entries:
                 url = entry.link
                 title = entry.title
@@ -93,17 +94,12 @@ def fetch_items() -> list[dict]:
                 published = getattr(entry, "published", "")
                 if not within_days(published, days=3):
                     continue
-                items.append(
-                    {
-                        "url": url,
-                        "title": title,
-                        "summary": summary,
-                        "published": published,
-                    }
-                )
+                items.append({"url": url, "title": title, "summary": summary, "published": published})
+                kept += 1
+            print(f"[feed] done: {feed_url} total={total} kept_last3d={kept}")
         except Exception as exc:
-            # Log and skip problematic feeds rather than halting execution
-            print(f"Failed to parse feed {feed_url}: {exc}")
+            print(f"[feed] error: {feed_url} -> {exc}")
+    print(f"[feed] total_kept_items={len(items)}")
     return items
 
 
